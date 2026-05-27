@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consumer Financial Complaints — CFPB Analytics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F8FAFC;color:#0F172A;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ── HEADER ── */
+.header{background:#0F172A;padding:22px 36px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.header-eyebrow{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:#059669;letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px}
+.header-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:700;color:#FFF;letter-spacing:-.4px;line-height:1.2}
+.header-sub{font-family:'DM Sans',sans-serif;font-size:13px;color:rgba(255,255,255,.45);margin-top:4px}
+.header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hbadge{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:#6EE7B7;background:rgba(5,150,105,.2);padding:5px 13px;border-radius:4px;letter-spacing:.5px;text-transform:uppercase;border:1px solid rgba(5,150,105,.3)}
+.hbadge2{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:rgba(255,255,255,.55);background:rgba(255,255,255,.07);padding:5px 13px;border-radius:4px;letter-spacing:.3px;border:1px solid rgba(255,255,255,.1)}
+
+/* ── TAB NAV ── */
+.tab-nav{background:#0F172A;border-top:1px solid rgba(255,255,255,.08);padding:0 36px;display:flex;gap:0}
+.tab-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:rgba(255,255,255,.45);padding:13px 22px;cursor:pointer;border:none;background:transparent;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;letter-spacing:.2px}
+.tab-btn:hover{color:rgba(255,255,255,.75)}
+.tab-btn.active{color:#FFFFFF;border-bottom-color:#059669}
+
+/* ── BODY ── */
+.body{padding:28px 36px 48px;max-width:1400px;margin:0 auto}
+.dash-section{display:none}
+.dash-section.active{display:block}
+
+/* ── SECTION LABEL ── */
+.sl{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;margin-top:24px;display:flex;align-items:center;gap:10px}
+.sl::after{content:'';flex:1;height:1px;background:#E2E8F0}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:4px}
+.kpi-card{background:#FFF;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+.kpi-strip{padding:9px 18px 8px}
+.ks-navy{background:#0F172A}.ks-sage{background:#059669}.ks-info{background:#0EA5E9}.ks-warn{background:#EAB308}.ks-error{background:#EF4444}
+.kpi-strip-label{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px}
+.kpi-body{padding:14px 18px 16px}
+.kpi-value{font-family:'Fira Code',monospace;font-size:28px;font-weight:500;color:#0F172A;line-height:1;letter-spacing:-.5px}
+.kpi-delta{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:3px 9px;border-radius:4px}
+.dp{background:rgba(34,197,94,.1);color:#16A34A}
+.dn{background:rgba(239,68,68,.1);color:#DC2626}
+.dk{background:rgba(100,116,139,.08);color:#64748B}
+
+/* ── CARDS ── */
+.card{background:#FFF;border:1px solid #E2E8F0;border-radius:8px;padding:20px 22px 22px;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+.card-elevated{background:#FFF;border-radius:8px;padding:20px 22px 22px;box-shadow:0 4px 16px rgba(15,23,42,.07)}
+.card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.6px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.ct-dot{width:6px;height:6px;border-radius:50%;background:#059669;flex-shrink:0}
+
+/* ── GRID ── */
+.grid{display:grid;gap:16px;margin-bottom:16px}
+.g1{grid-template-columns:1fr}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g32{grid-template-columns:3fr 2fr}
+.g23{grid-template-columns:2fr 3fr}
+
+/* ── CHART WRAP ── */
+.cw{position:relative;width:100%}
+
+/* ── LEGEND ── */
+.legend{display:flex;flex-wrap:wrap;gap:10px 14px;margin-bottom:14px}
+.li{display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:11px;color:#64748B}
+.ls{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ── MAP SPECIFIC ── */
+.map-controls{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.map-ctrl-label{font-family:'DM Sans',sans-serif;font-size:11px;color:#94A3B8;letter-spacing:.4px;text-transform:uppercase;margin-right:4px}
+.map-btn{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;padding:5px 12px;border-radius:4px;cursor:pointer;border:1px solid #E2E8F0;background:#F8FAFC;color:#64748B;transition:all .15s;letter-spacing:.3px;text-transform:uppercase}
+.map-btn.active{background:#0F172A;color:#FFF;border-color:#0F172A}
+.map-btn:hover:not(.active){background:#F1F5F9;border-color:#CBD5E1}
+
+.map-legend{display:flex;align-items:center;gap:10px;margin-top:12px}
+.map-legend-bar{flex:1;height:8px;border-radius:4px;background:linear-gradient(to right,#E2E8F0,#CBD5E1,#94A3B8,#64748B,#334155,#0F172A)}
+.map-legend-label{font-family:'DM Sans',sans-serif;font-size:11px;color:#94A3B8}
+
+.map-tooltip{position:fixed;background:#0F172A;color:#FFF;border-radius:8px;padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:12px;pointer-events:none;z-index:9999;min-width:180px;box-shadow:0 8px 24px rgba(15,23,42,.25);opacity:0;transition:opacity .1s}
+.map-tooltip-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:#FFF;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:6px}
+.map-tooltip-row{display:flex;justify-content:space-between;gap:16px;margin-bottom:3px}
+.map-tooltip-key{color:rgba(255,255,255,.55);font-size:11px}
+.map-tooltip-val{color:#FFF;font-family:'Fira Code',monospace;font-size:11px;font-weight:500}
+.map-tooltip-chip{display:inline-block;margin-top:6px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px}
+
+#us-map{width:100%;height:400px;border-radius:8px;overflow:hidden}
+#us-map svg{width:100%;height:100%}
+
+/* ── STATE TABLE ── */
+.state-table-wrap{overflow-x:auto;border-radius:8px;border:1px solid #E2E8F0}
+.state-table{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:13px}
+.state-table thead tr{background:#0F172A}
+.state-table thead th{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.6px;padding:11px 14px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none}
+.state-table thead th:hover{color:#FFF}
+.state-table thead th.sort-asc::after{content:' ↑'}
+.state-table thead th.sort-desc::after{content:' ↓'}
+.state-table tbody tr{border-bottom:1px solid #F1F5F9;transition:background .1s}
+.state-table tbody tr:hover{background:#F8FAFC}
+.state-table tbody tr:last-child{border-bottom:none}
+.state-table td{padding:10px 14px;color:#0F172A;white-space:nowrap}
+.state-table td.num{font-family:'Fira Code',monospace;font-size:12px;text-align:right}
+.state-table td.state-code{font-family:'Fira Code',monospace;font-size:13px;font-weight:500;color:#0F172A}
+.region-chip{display:inline-block;font-size:10px;font-weight:500;padding:2px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px}
+.rc-south{background:rgba(239,68,68,.1);color:#DC2626}
+.rc-west{background:rgba(14,165,233,.1);color:#0369A1}
+.rc-northeast{background:rgba(5,150,105,.1);color:#065F46}
+.rc-midwest{background:rgba(234,179,8,.1);color:#854D0E}
+.bar-cell{display:flex;align-items:center;gap:8px}
+.mini-bar{height:6px;border-radius:3px;background:#0F172A;min-width:2px;transition:width .3s}
+
+/* ── CHART NOTE ── */
+.chart-note{font-family:'DM Sans',sans-serif;font-size:11px;color:#94A3B8;margin-top:10px;text-align:right}
+
+/* ── FOOTER ── */
+.footer{background:#FFF;border-top:1px solid #E2E8F0;padding:14px 36px;display:flex;align-items:center;justify-content:space-between}
+.footer-left{font-family:'DM Sans',sans-serif;font-size:12px;color:#94A3B8}
+.footer-brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:#CBD5E1;letter-spacing:.3px}
+.footer-brand span{color:#059669}
+
+/* ── DASH 3 ─────────────────────────────────────────── */
+.prod-selector{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.prod-chip{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;padding:5px 12px;border-radius:4px;cursor:pointer;border:1px solid #E2E8F0;background:#F8FAFC;color:#64748B;transition:all .15s;letter-spacing:.3px}
+.prod-chip.active{background:#0F172A;color:#FFF;border-color:#0F172A}
+.prod-chip:hover:not(.active){background:#F1F5F9;border-color:#CBD5E1}
+#sankeyWrap{width:100%;overflow:hidden}
+.sankey-tip{position:fixed;background:#0F172A;color:#FFF;padding:8px 12px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;pointer-events:none;z-index:9998;opacity:0;transition:opacity .1s;white-space:nowrap}
+.drill-sub-label{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+.ptbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:13px}
+.ptbl thead tr{background:#0F172A}
+.ptbl thead th{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.6px;padding:11px 16px;text-align:left;white-space:nowrap}
+.ptbl tbody tr{border-bottom:1px solid #F1F5F9;transition:background .1s}
+.ptbl tbody tr:hover{background:#F8FAFC}
+.ptbl tbody tr:last-child{border-bottom:none}
+.ptbl td{padding:10px 16px;color:#0F172A;white-space:nowrap}
+.ptbl td.n{font-family:'Fira Code',monospace;font-size:12px;text-align:right}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div>
+    <div class="header-eyebrow">CFPB Analytics · 2017–2023</div>
+    <div class="header-title">Consumer Financial Complaints</div>
+    <div class="header-sub">Complaint ecosystem analysis across products, geographies &amp; response performance</div>
+  </div>
+  <div class="header-right">
+    <div class="hbadge">62,516 Records</div>
+    <div class="hbadge2">1,081 Companies</div>
+  </div>
+</header>
+
+<!-- TAB NAVIGATION -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(1)">Dashboard 1 &nbsp;·&nbsp; Overview &amp; Trends</button>
+  <button class="tab-btn" onclick="switchTab(2)">Dashboard 2 &nbsp;·&nbsp; Geographic Insights</button>
+  <button class="tab-btn" onclick="switchTab(3)">Dashboard 3 &nbsp;·&nbsp; Product &amp; Issue Analysis</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════
+     DASHBOARD 1 — OVERVIEW & TRENDS
+═══════════════════════════════════════════════════ -->
+<section id="dash1" class="dash-section active">
+<div class="body">
+
+  <div class="sl">Executive KPIs</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-strip ks-navy"><div class="kpi-strip-label">Total Complaints</div></div>
+      <div class="kpi-body"><div class="kpi-val fira">62,516</div><div class="kpi-delta dk">May 2017 – Aug 2023</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-strip ks-sage"><div class="kpi-strip-label">Timely Response Rate</div></div>
+      <div class="kpi-body"><div class="kpi-val fira">93.8%</div><div class="kpi-delta dp">↑ 58,619 resolved on time</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-strip ks-info"><div class="kpi-strip-label">Avg Response Time</div></div>
+      <div class="kpi-body"><div class="kpi-val fira">15.1 days</div><div class="kpi-delta dk">Median 15 · Max 30 days</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-strip ks-warn"><div class="kpi-strip-label">Peak Complaint Year</div></div>
+      <div class="kpi-body"><div class="kpi-val fira">2022</div><div class="kpi-delta dn">↑ +16.2% vs 2021</div></div>
+    </div>
+  </div>
+
+  <div class="sl">Volume &amp; Response Distribution</div>
+  <div class="grid g32">
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Yearly complaint volume with YoY change</div>
+      <div class="cw" style="height:228px"><canvas id="yearlyChart" role="img" aria-label="Bar chart of yearly complaint volume from 2017 to 2023">2017:5394, 2018:7872, 2019:7075, 2020:8942, 2021:11149, 2022:12953, 2023:9131</canvas></div>
+      <div class="chart-note">2023 = partial year (Jan–Aug only)</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Company response to consumer</div>
+      <div class="legend">
+        <div class="li"><span class="ls" style="background:#0F172A"></span>Closed w/ explanation (65.7%)</div>
+        <div class="li"><span class="ls" style="background:#059669"></span>Monetary relief (23.5%)</div>
+        <div class="li"><span class="ls" style="background:#0EA5E9"></span>Non-monetary relief (8.4%)</div>
+        <div class="li"><span class="ls" style="background:#EAB308"></span>In progress (2.4%)</div>
+      </div>
+      <div class="cw" style="height:178px"><canvas id="responseDonut" role="img" aria-label="Donut chart of company response types">65.7% closed with explanation</canvas></div>
+    </div>
+  </div>
+
+  <div class="sl">Monthly Trend Analysis</div>
+  <div class="grid g1">
+    <div class="card-elevated">
+      <div class="card-title"><span class="ct-dot"></span>Monthly complaint volume — May 2017 to August 2023</div>
+      <div class="cw" style="height:165px"><canvas id="monthlyChart" role="img" aria-label="Line chart of monthly complaint counts">Rising from ~700/month in 2017 to 1100+ in 2022-2023</canvas></div>
+    </div>
+  </div>
+
+  <div class="sl">Product &amp; Channel Breakdown</div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Complaints by financial product</div>
+      <div class="cw" style="height:238px"><canvas id="productChart" role="img" aria-label="Horizontal bar chart of complaints by product">Checking/savings 24814, Credit card 16197, Credit reporting 7710</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Timely response rate by submission channel</div>
+      <div class="legend">
+        <div class="li"><span class="ls" style="background:#059669"></span>High (≥97%)</div>
+        <div class="li"><span class="ls" style="background:#0EA5E9"></span>Medium (93–97%)</div>
+        <div class="li"><span class="ls" style="background:#EF4444"></span>Low (&lt;93%)</div>
+      </div>
+      <div class="cw" style="height:206px"><canvas id="channelChart" role="img" aria-label="Horizontal bar chart of timely response by channel">Email 100%, Fax 99.6%, Web Referral 87.8%</canvas></div>
+    </div>
+  </div>
+
+  <div class="sl">Geographic, Company Size &amp; Response Time</div>
+  <div class="grid g3">
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Complaints by US census region</div>
+      <div class="cw" style="height:175px"><canvas id="regionChart" role="img" aria-label="Bar chart by US region">South 23152, West 20027, Northeast 12674, Midwest 6663</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Company size vs complaint load</div>
+      <div class="cw" style="height:175px"><canvas id="sizeChart" role="img" aria-label="Bar chart by company size tier">Large 53594, Medium 8922</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Response time distribution (days)</div>
+      <div class="cw" style="height:175px"><canvas id="rtChart" role="img" aria-label="Bar chart of response time distribution">0-5:11887, 6-10:9913, 11-15:10255, 16-20:10086, 21-25:10246, 26-30:10129</canvas></div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     DASHBOARD 2 — GEOGRAPHIC INSIGHTS
+═══════════════════════════════════════════════════ -->
+<section id="dash2" class="dash-section">
+<div class="body">
+
+  <div class="sl">Geographic KPIs</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-strip ks-navy"><div class="kpi-strip-label">Top Complaint State</div></div>
+      <div class="kpi-body"><div class="kpi-value">California</div><div class="kpi-delta dn">13,709 complaints · 21.9%</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-strip ks-error"><div class="kpi-strip-label">Highest Volume Region</div></div>
+      <div class="kpi-body"><div class="kpi-value">South</div><div class="kpi-delta dn">23,152 complaints · 37.0%</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-strip ks-warn"><div class="kpi-strip-label">Total Unresolved</div></div>
+      <div class="kpi-body"><div class="kpi-value">1,494</div><div class="kpi-delta dn">In Progress · 2.4% of total</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-strip ks-sage"><div class="kpi-strip-label">Midwest YoY Surge</div></div>
+      <div class="kpi-body"><div class="kpi-value">+54.9%</div><div class="kpi-delta dn">↑ 2021→2022 · Highest region</div></div>
+    </div>
+  </div>
+
+  <!-- MAP + REGION SUMMARY -->
+  <div class="sl">Interactive Complaint Density Map</div>
+  <div class="grid g23">
+
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Complaint density by state</div>
+      <div class="map-controls">
+        <span class="map-ctrl-label">Metric:</span>
+        <button class="map-btn active" id="btn-total" onclick="switchMapMetric('total')">Total complaints</button>
+        <button class="map-btn" id="btn-unres" onclick="switchMapMetric('unresolved_pct')">Unresolved %</button>
+        <button class="map-btn" id="btn-timely" onclick="switchMapMetric('timely_pct')">Timely response %</button>
+      </div>
+      <div id="us-map" role="img" aria-label="Interactive choropleth map of US states colored by complaint density"></div>
+      <div class="map-legend" id="map-legend-bar">
+        <span class="map-legend-label" id="map-leg-lo">Low</span>
+        <div class="map-legend-bar" id="map-grad-bar"></div>
+        <span class="map-legend-label" id="map-leg-hi">High</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Region &amp; division breakdown</div>
+      <div class="cw" style="height:172px"><canvas id="regionBarChart" role="img" aria-label="Bar chart of complaints by census region">South 23152, West 20027, Northeast 12674, Midwest 6663</canvas></div>
+      <div style="margin-top:16px">
+        <div class="card-title" style="margin-bottom:10px"><span class="ct-dot"></span>Census division ranking</div>
+        <div class="cw" style="height:180px"><canvas id="divisionChart" role="img" aria-label="Horizontal bar chart of complaints by census division">South Atlantic 16336, Pacific 16080, Middle Atlantic 8782</canvas></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- REGIONAL TRENDS -->
+  <div class="sl">Regional Year-over-Year Trend Analysis</div>
+  <div class="grid g1">
+    <div class="card-elevated">
+      <div class="card-title"><span class="ct-dot"></span>Annual complaint trend by census region — 2017 to 2023</div>
+      <div class="legend">
+        <div class="li"><span class="ls" style="background:#EF4444"></span>South</div>
+        <div class="li"><span class="ls" style="background:#0EA5E9"></span>West</div>
+        <div class="li"><span class="ls" style="background:#059669"></span>Northeast</div>
+        <div class="li"><span class="ls" style="background:#EAB308"></span>Midwest</div>
+      </div>
+      <div class="cw" style="height:200px"><canvas id="regionalTrendChart" role="img" aria-label="Multi-line chart showing annual complaints by region from 2017 to 2023">South grows from 2147 to 4768, West from 1620 to 4073, Northeast from 1046 to 2605, Midwest from 581 to 1507</canvas></div>
+    </div>
+  </div>
+
+  <!-- TOP STATES + UNRESOLVED -->
+  <div class="sl">State Performance Analysis</div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Top 15 states by complaint volume</div>
+      <div class="cw" style="height:290px"><canvas id="topStatesChart" role="img" aria-label="Horizontal bar chart of top 15 states by complaints">California 13709, Florida 6488, Texas 4686, New York 4442</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Unresolved complaints concentration (top states)</div>
+      <div class="cw" style="height:290px"><canvas id="unresolvedChart" role="img" aria-label="Bar chart of unresolved complaint counts in top states">CA 297, FL 185, TX 123, NY 95</canvas></div>
+    </div>
+  </div>
+
+  <!-- STATE TABLE -->
+  <div class="sl">Full State-Wise Breakdown</div>
+  <div class="card" style="padding:0">
+    <div class="state-table-wrap">
+      <table class="state-table" id="stateTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)" title="Sort by rank">#</th>
+            <th onclick="sortTable(1)" title="Sort by state">State</th>
+            <th onclick="sortTable(2)" title="Sort by region">Region</th>
+            <th onclick="sortTable(3)" title="Sort by complaints">Complaints ↓</th>
+            <th onclick="sortTable(4)" title="Sort by unresolved">Unresolved</th>
+            <th onclick="sortTable(5)" title="Sort by untimely">Untimely</th>
+            <th onclick="sortTable(6)" title="Sort by timely %">Timely %</th>
+            <th onclick="sortTable(7)" title="Sort by avg response time">Avg RT (days)</th>
+            <th title="Volume bar">Volume</th>
+          </tr>
+        </thead>
+        <tbody id="stateTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- DASHBOARD 3 -->
+<section id="dash3" class="dash-section">
+<div class="body">
+
+  <div class="sl">Product &amp; Issue KPIs</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-strip ks-navy"><div class="kpi-strip-label">Top Product</div></div>
+      <div class="kpi-body"><div class="kpi-value" style="font-size:22px">Checking / Savings</div><div class="kpi-delta dn">24,814 complaints &nbsp;·&nbsp; 39.7% share</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-strip ks-error"><div class="kpi-strip-label">Top Issue</div></div>
+      <div class="kpi-body"><div class="kpi-value" style="font-size:22px">Managing Account</div><div class="kpi-delta dn">15,109 complaints &nbsp;·&nbsp; 24.2% share</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-strip ks-warn"><div class="kpi-strip-label">Highest Unresolved Product</div></div>
+      <div class="kpi-body"><div class="kpi-value" style="font-size:22px">Checking Acct</div><div class="kpi-delta dn">710 in-progress &nbsp;·&nbsp; 47.5% of all unresolved</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-strip ks-sage"><div class="kpi-strip-label">Fastest Growing 2017–2022</div></div>
+      <div class="kpi-body"><div class="kpi-value" style="font-size:22px">Money Transfer</div><div class="kpi-delta dp">↑ +634% (141 → 1,035 complaints)</div></div>
+    </div>
+  </div>
+
+  <div class="sl">Product Volume &amp; Risk Overview</div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Total complaints by product</div>
+      <div class="cw" style="height:240px"><canvas id="d3prodVolChart" role="img" aria-label="Horizontal bar chart of total complaints by financial product"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-dot"></span>Unresolved &amp; untimely by product</div>
+      <div class="legend">
+        <div class="li"><span class="ls" style="background:rgba(239,68,68,.85)"></span>Unresolved (in progress)</div>
+        <div class="li"><span class="ls" style="background:rgba(234,179,8,.75)"></span>Untimely responses</div>
+      </div>
+      <div class="cw" style="height:208px"><canvas id="d3riskChart" role="img" aria-label="Grouped bar chart of unresolved and untimely complaints by product"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sl">Interactive Product Drill-Through</div>
+  <div class="card">
+    <div class="card-title"><span class="ct-dot"></span>Select a product to explore sub-products &amp; top issues</div>
+    <div class="prod-selector" id="prodSelector"></div>
+    <div class="grid g2" style="margin-bottom:0">
+      <div>
+        <div class="drill-sub-label">Sub-product breakdown</div>
+        <div class="cw" style="height:205px"><canvas id="drillSubprodChart" role="img" aria-label="Sub-product donut chart for selected product"></canvas></div>
+      </div>
+      <div>
+        <div class="drill-sub-label">Top complaint issues</div>
+        <div class="cw" style="height:205px"><canvas id="drillIssueChart" role="img" aria-label="Top issues bar chart for selected product"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sl">Product → Issue Flow (Sankey Diagram)</div>
+  <div class="card-elevated">
+    <div class="card-title"><span class="ct-dot"></span>How complaints flow from the 6 largest products into issue categories</div>
+    <div id="sankeyWrap"></div>
+  </div>
+
+  <div class="sl">Issue Trend &amp; Moving Average Analysis</div>
+  <div class="grid g2">
+    <div class="card-elevated">
+      <div class="card-title"><span class="ct-dot"></span>Top 5 issues — yearly trend</div>
+      <div class="legend">
+        <div class="li"><span class="ls" style="background:#0F172A"></span>Managing account</div>
+        <div class="li"><span class="ls" style="background:#EF4444"></span>Fraud or scam</div>
+        <div class="li"><span class="ls" style="background:#0EA5E9"></span>Incorrect info</div>
+        <div class="li"><span class="ls" style="background:#059669"></span>Problem w/ purchase</div>
+        <div class="li"><span class="ls" style="background:#EAB308"></span>Trouble w/ payment</div>
+      </div>
+      <div class="cw" style="height:190px"><canvas id="issueTrendChart" role="img" aria-label="Multi-line chart of top 5 issues yearly trend from 2017 to 2023"></canvas></div>
+    </div>
+    <div class="card-elevated">
+      <div class="card-title"><span class="ct-dot"></span>Product monthly trends — 3-month moving average</div>
+      <div class="legend">
+        <div class="li"><span class="ls" style="background:#0F172A"></span>Checking</div>
+        <div class="li"><span class="ls" style="background:#0EA5E9"></span>Credit Card</div>
+        <div class="li"><span class="ls" style="background:#059669"></span>Credit Reporting</div>
+        <div class="li"><span class="ls" style="background:#EAB308"></span>Mortgage</div>
+        <div class="li"><span class="ls" style="background:#EF4444"></span>Money Transfer</div>
+      </div>
+      <div class="cw" style="height:190px"><canvas id="trendMaChart" role="img" aria-label="Multi-line chart of product complaint trends with 3-month moving average"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sl">Product Performance Summary Table</div>
+  <div class="card" style="padding:0;overflow:hidden;border-radius:8px">
+    <table class="ptbl">
+      <thead><tr>
+        <th>Product</th>
+        <th style="text-align:right">Complaints</th>
+        <th style="text-align:right">Share</th>
+        <th style="text-align:right">Unresolved</th>
+        <th style="text-align:right">Untimely</th>
+        <th>Top Issue</th>
+        <th style="text-align:right">2021→2022 Growth</th>
+      </tr></thead>
+      <tbody id="prodTableBody"></tbody>
+    </table>
+  </div>
+
+</div>
+</section>
+<div class="sankey-tip" id="sankeyTip"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-left">CFPB Consumer Financial Complaints · 62,516 records · 51 states/territories · May 2017 – August 2023</div>
+  <div class="footer-brand">Verdana <span>Health</span> Design System</div>
+</footer>
+
+<!-- TOOLTIP for map -->
+<div class="map-tooltip" id="mapTooltip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+<script>
+/* ── SHARED CONFIG ─────────────────────────────────── */
+Chart.defaults.font.family="'DM Sans',sans-serif";
+Chart.defaults.font.size=12;
+Chart.defaults.color='#64748B';
+
+const GRID={color:'#F1F5F9',drawBorder:false};
+const TICKS={color:'#94A3B8',font:{family:"'DM Sans',sans-serif",size:11}};
+const TIP={
+  backgroundColor:'#0F172A',titleColor:'#FFF',bodyColor:'rgba(255,255,255,.75)',
+  titleFont:{family:"'Plus Jakarta Sans',sans-serif",size:12,weight:'600'},
+  bodyFont:{family:"'DM Sans',sans-serif",size:12},padding:11,cornerRadius:6,displayColors:false
+};
+
+/* ── TAB SWITCHING ─────────────────────────────────── */
+let dash2Ready=false;
+let dash3Ready=false;
+function switchTab(n){
+  document.querySelectorAll('.dash-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('dash'+n).classList.add('active');
+  document.querySelectorAll('.tab-btn')[n-1].classList.add('active');
+  if(n===2&&!dash2Ready){dash2Ready=true;initDash2();}
+  if(n===3&&!dash3Ready){dash3Ready=true;initDash3();}
+}
+
+/* ══════════════════════════════════════════════════
+   DASHBOARD 1 CHARTS
+═══════════════════════════════════════════════════ */
+new Chart(document.getElementById('yearlyChart'),{
+  type:'bar',
+  data:{
+    labels:['2017','2018','2019','2020','2021','2022','2023*'],
+    datasets:[{data:[5394,7872,7075,8942,11149,12953,9131],
+      backgroundColor:['#CBD5E1','#94A3B8','#94A3B8','#64748B','#475569','#0F172A','#0EA5E9'],
+      borderRadius:5,borderSkipped:false}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{
+      title:i=>`Year ${i[0].label}`,
+      label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`,
+      afterLabel:c=>{const y=[null,'↑ +45.9%','↓ −10.1%','↑ +26.4%','↑ +24.7%','↑ +16.2%','Partial year'];return y[c.dataIndex]?` ${y[c.dataIndex]}`:'';}
+    }}},
+    scales:{
+      x:{grid:{display:false},ticks:{...TICKS,font:{family:"'DM Sans',sans-serif",size:12}}},
+      y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:5,callback:v=>(v/1000).toFixed(0)+'k'},border:{display:false}}
+    }
+  }
+});
+
+new Chart(document.getElementById('responseDonut'),{
+  type:'doughnut',
+  data:{
+    labels:['Closed w/ explanation','Monetary relief','Non-monetary relief','In progress'],
+    datasets:[{data:[41044,14697,5273,1494],backgroundColor:['#0F172A','#059669','#0EA5E9','#EAB308'],borderWidth:4,borderColor:'#FFF',hoverOffset:8}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>` ${c.label}: ${parseInt(c.raw).toLocaleString()}`,afterLabel:c=>` ${(c.raw/62516*100).toFixed(1)}% of total`}}}
+  }
+});
+
+const MR = [{y:2017,m:5,c:727},{y:2017,m:6,c:689},{y:2017,m:7,c:709},{y:2017,m:8,c:667},{y:2017,m:9,c:608},{y:2017,m:10,c:675},{y:2017,m:11,c:659},{y:2017,m:12,c:635},{y:2018,m:1,c:689},{y:2018,m:2,c:618},{y:2018,m:3,c:738},{y:2018,m:4,c:835},{y:2018,m:5,c:826},{y:2018,m:6,c:630},{y:2018,m:7,c:670},{y:2018,m:8,c:646},{y:2018,m:9,c:644},{y:2018,m:10,c:699},{y:2018,m:11,c:489},{y:2018,m:12,c:400},{y:2019,m:1,c:438},{y:2019,m:2,c:293},{y:2019,m:3,c:466},{y:2019,m:4,c:691},{y:2019,m:5,c:634},{y:2019,m:6,c:621},{y:2019,m:7,c:690},{y:2019,m:8,c:706},{y:2019,m:9,c:674},{y:2019,m:10,c:661},{y:2019,m:11,c:579},{y:2019,m:12,c:622},{y:2020,m:1,c:654},{y:2020,m:2,c:601},{y:2020,m:3,c:627},{y:2020,m:4,c:772},{y:2020,m:5,c:649},{y:2020,m:6,c:731},{y:2020,m:7,c:676},{y:2020,m:8,c:734},{y:2020,m:9,c:809},{y:2020,m:10,c:882},{y:2020,m:11,c:836},{y:2020,m:12,c:972},{y:2021,m:1,c:910},{y:2021,m:2,c:964},{y:2021,m:3,c:1122},{y:2021,m:4,c:938},{y:2021,m:5,c:845},{y:2021,m:6,c:912},{y:2021,m:7,c:939},{y:2021,m:8,c:924},{y:2021,m:9,c:840},{y:2021,m:10,c:880},{y:2021,m:11,c:919},{y:2021,m:12,c:940},{y:2022,m:1,c:979},{y:2022,m:2,c:952},{y:2022,m:3,c:1114},{y:2022,m:4,c:1074},{y:2022,m:5,c:971},{y:2022,m:6,c:936},{y:2022,m:7,c:1028},{y:2022,m:8,c:1282},{y:2022,m:9,c:1187},{y:2022,m:10,c:1139},{y:2022,m:11,c:1150},{y:2022,m:12,c:1124},{y:2023,m:1,c:1198},{y:2023,m:2,c:1082},{y:2023,m:3,c:1217},{y:2023,m:4,c:1049},{y:2023,m:5,c:1096},{y:2023,m:6,c:1015},{y:2023,m:7,c:1743},{y:2023,m:8,c:776}];
+const MN=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+new Chart(document.getElementById('monthlyChart'),{
+  type:'line',
+  data:{
+    labels:MR.map(d=>(d.m===1||d.m===7)?`${d.y} ${MN[d.m]}`:''),
+    datasets:[{data:MR.map(d=>d.c),borderColor:'#059669',backgroundColor:'rgba(5,150,105,.05)',fill:true,tension:.4,borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:'#059669',pointHoverBorderColor:'#FFF',pointHoverBorderWidth:2}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{title:i=>{const d=MR[i[0].dataIndex];return`${d.y} ${MN[d.m]}`},label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`}}},
+    scales:{x:{grid:{display:false},ticks:{...TICKS,maxRotation:0,autoSkip:false}},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4},min:0,border:{display:false}}}
+  }
+});
+
+new Chart(document.getElementById('productChart'),{
+  type:'bar',
+  data:{
+    labels:['Checking / savings acct','Credit card / prepaid card','Credit reporting / repair','Mortgage','Money transfer / virtual','Debt collection','Vehicle loan or lease','Payday / personal loan','Student loan'],
+    datasets:[{data:[24814,16197,7710,6601,3453,2736,633,333,39],backgroundColor:[24814,16197,7710,6601,3453,2736,633,333,39].map(v=>v>15000?'#0F172A':v>6000?'#334155':v>2000?'#64748B':'#CBD5E1'),borderRadius:3,borderSkipped:false}]
+  },
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`,afterLabel:c=>` ${(c.raw/62516*100).toFixed(1)}% share`}}},
+    scales:{x:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4,callback:v=>(v/1000).toFixed(0)+'k'},border:{display:false}},y:{grid:{display:false},ticks:{...TICKS,font:{family:"'DM Sans',sans-serif",size:11}}}}
+  }
+});
+
+new Chart(document.getElementById('channelChart'),{
+  type:'bar',
+  data:{
+    labels:['Web Referral','Web','Phone','Referral','Postal mail','Fax','Email'],
+    datasets:[{data:[87.8,92.9,93.5,96.9,97.3,99.6,100.0],backgroundColor:[87.8,92.9,93.5,96.9,97.3,99.6,100.0].map(v=>v>=97?'#059669':v>=93?'#0EA5E9':'#EF4444'),borderRadius:3,borderSkipped:false}]
+  },
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>` ${c.parsed.x.toFixed(1)}% timely responses`}}},
+    scales:{x:{grid:GRID,ticks:{...TICKS,callback:v=>v+'%'},min:80,max:101,border:{display:false}},y:{grid:{display:false},ticks:{...TICKS,font:{family:"'DM Sans',sans-serif",size:11}}}}
+  }
+});
+
+new Chart(document.getElementById('regionChart'),{
+  type:'bar',
+  data:{labels:['South','West','Northeast','Midwest'],datasets:[{data:[23152,20027,12674,6663],backgroundColor:['#0F172A','#334155','#64748B','#94A3B8'],borderRadius:4,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`,afterLabel:c=>` ${(c.raw/62516*100).toFixed(1)}% of total`}}},
+    scales:{x:{grid:{display:false},ticks:TICKS},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4,callback:v=>(v/1000).toFixed(0)+'k'},border:{display:false}}}
+  }
+});
+
+new Chart(document.getElementById('sizeChart'),{
+  type:'bar',
+  data:{labels:['Medium\n(20–50)','Large\n(50–100)'],datasets:[{data:[8922,53594],backgroundColor:['#0EA5E9','#0F172A'],borderRadius:4,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{title:i=>`${i[0].label.replace('\n',' ')} complaints/company`,label:c=>` ${parseInt(c.raw).toLocaleString()} total complaints`,afterLabel:c=>` ${(c.raw/62516*100).toFixed(1)}% of dataset`}}},
+    scales:{x:{grid:{display:false},ticks:{...TICKS,maxRotation:0}},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4,callback:v=>(v/1000).toFixed(0)+'k'},border:{display:false}}}
+  }
+});
+
+new Chart(document.getElementById('rtChart'),{
+  type:'bar',
+  data:{labels:['0–5','6–10','11–15','16–20','21–25','26–30'],datasets:[{data:[11887,9913,10255,10086,10246,10129],backgroundColor:['#059669','#22C55E','#EAB308','#F97316','#EF4444','#DC2626'],borderRadius:3,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{title:i=>`${i[0].label} days response window`,label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`}}},
+    scales:{x:{grid:{display:false},ticks:{...TICKS,font:{family:"'DM Sans',sans-serif",size:11}}},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4,callback:v=>(v/1000).toFixed(0)+'k'},border:{display:false}}}
+  }
+});
+
+/* ══════════════════════════════════════════════════
+   DASHBOARD 2 DATA
+═══════════════════════════════════════════════════ */
+const STATE_DATA = {
+  "AK":{"total":110,"unresolved":1,"untimely":3,"avg_rt":13.3,"region":"West","timely_pct":96.4,"unresolved_pct":0.9},
+  "AL":{"total":269,"unresolved":4,"untimely":9,"avg_rt":14.7,"region":"South","timely_pct":95.2,"unresolved_pct":1.5},
+  "AR":{"total":266,"unresolved":9,"untimely":11,"avg_rt":14.8,"region":"South","timely_pct":92.5,"unresolved_pct":3.4},
+  "AZ":{"total":1516,"unresolved":31,"untimely":64,"avg_rt":15.0,"region":"West","timely_pct":93.7,"unresolved_pct":2.0},
+  "CA":{"total":13709,"unresolved":297,"untimely":599,"avg_rt":15.0,"region":"West","timely_pct":93.5,"unresolved_pct":2.2},
+  "CO":{"total":576,"unresolved":6,"untimely":21,"avg_rt":15.2,"region":"West","timely_pct":95.3,"unresolved_pct":1.0},
+  "CT":{"total":1097,"unresolved":30,"untimely":36,"avg_rt":14.9,"region":"Northeast","timely_pct":94.0,"unresolved_pct":2.7},
+  "DC":{"total":353,"unresolved":7,"untimely":13,"avg_rt":14.4,"region":"South","timely_pct":94.3,"unresolved_pct":2.0},
+  "DE":{"total":268,"unresolved":7,"untimely":7,"avg_rt":15.2,"region":"South","timely_pct":94.8,"unresolved_pct":2.6},
+  "FL":{"total":6488,"unresolved":185,"untimely":258,"avg_rt":15.0,"region":"South","timely_pct":93.2,"unresolved_pct":2.9},
+  "GA":{"total":2921,"unresolved":72,"untimely":89,"avg_rt":15.1,"region":"South","timely_pct":94.5,"unresolved_pct":2.5},
+  "HI":{"total":111,"unresolved":3,"untimely":2,"avg_rt":15.8,"region":"West","timely_pct":95.5,"unresolved_pct":2.7},
+  "IA":{"total":154,"unresolved":6,"untimely":8,"avg_rt":16.4,"region":"Midwest","timely_pct":90.9,"unresolved_pct":3.9},
+  "ID":{"total":122,"unresolved":2,"untimely":3,"avg_rt":15.2,"region":"West","timely_pct":95.9,"unresolved_pct":1.6},
+  "IL":{"total":2270,"unresolved":66,"untimely":89,"avg_rt":15.3,"region":"Midwest","timely_pct":93.2,"unresolved_pct":2.9},
+  "IN":{"total":316,"unresolved":11,"untimely":17,"avg_rt":15.5,"region":"Midwest","timely_pct":91.1,"unresolved_pct":3.5},
+  "KS":{"total":311,"unresolved":4,"untimely":13,"avg_rt":15.0,"region":"Midwest","timely_pct":94.5,"unresolved_pct":1.3},
+  "KY":{"total":157,"unresolved":3,"untimely":7,"avg_rt":15.1,"region":"South","timely_pct":93.6,"unresolved_pct":1.9},
+  "LA":{"total":246,"unresolved":3,"untimely":5,"avg_rt":15.1,"region":"South","timely_pct":96.7,"unresolved_pct":1.2},
+  "MA":{"total":2141,"unresolved":46,"untimely":76,"avg_rt":15.4,"region":"Northeast","timely_pct":94.3,"unresolved_pct":2.1},
+  "MD":{"total":1959,"unresolved":38,"untimely":68,"avg_rt":15.3,"region":"South","timely_pct":94.6,"unresolved_pct":1.9},
+  "ME":{"total":152,"unresolved":2,"untimely":1,"avg_rt":15.2,"region":"Northeast","timely_pct":98.0,"unresolved_pct":1.3},
+  "MI":{"total":1395,"unresolved":63,"untimely":43,"avg_rt":15.3,"region":"Midwest","timely_pct":92.4,"unresolved_pct":4.5},
+  "MN":{"total":382,"unresolved":9,"untimely":12,"avg_rt":14.9,"region":"Midwest","timely_pct":94.5,"unresolved_pct":2.4},
+  "MO":{"total":674,"unresolved":16,"untimely":15,"avg_rt":15.2,"region":"Midwest","timely_pct":95.4,"unresolved_pct":2.4},
+  "MS":{"total":141,"unresolved":1,"untimely":6,"avg_rt":15.7,"region":"South","timely_pct":95.0,"unresolved_pct":0.7},
+  "MT":{"total":70,"unresolved":1,"untimely":3,"avg_rt":14.5,"region":"West","timely_pct":94.3,"unresolved_pct":1.4},
+  "NC":{"total":1717,"unresolved":28,"untimely":60,"avg_rt":15.0,"region":"South","timely_pct":94.9,"unresolved_pct":1.6},
+  "ND":{"total":22,"unresolved":1,"untimely":1,"avg_rt":14.6,"region":"Midwest","timely_pct":90.9,"unresolved_pct":4.5},
+  "NE":{"total":83,"unresolved":2,"untimely":3,"avg_rt":15.6,"region":"Midwest","timely_pct":94.0,"unresolved_pct":2.4},
+  "NH":{"total":199,"unresolved":3,"untimely":4,"avg_rt":14.4,"region":"Northeast","timely_pct":96.5,"unresolved_pct":1.5},
+  "NJ":{"total":2664,"unresolved":58,"untimely":93,"avg_rt":15.1,"region":"Northeast","timely_pct":94.3,"unresolved_pct":2.2},
+  "NM":{"total":219,"unresolved":7,"untimely":4,"avg_rt":15.4,"region":"West","timely_pct":95.0,"unresolved_pct":3.2},
+  "NV":{"total":1221,"unresolved":28,"untimely":41,"avg_rt":14.9,"region":"West","timely_pct":94.3,"unresolved_pct":2.3},
+  "NY":{"total":4442,"unresolved":95,"untimely":198,"avg_rt":15.2,"region":"Northeast","timely_pct":93.4,"unresolved_pct":2.1},
+  "OH":{"total":731,"unresolved":9,"untimely":30,"avg_rt":14.9,"region":"Midwest","timely_pct":94.7,"unresolved_pct":1.2},
+  "OK":{"total":293,"unresolved":1,"untimely":11,"avg_rt":15.1,"region":"South","timely_pct":95.9,"unresolved_pct":0.3},
+  "OR":{"total":620,"unresolved":12,"untimely":32,"avg_rt":15.3,"region":"West","timely_pct":92.9,"unresolved_pct":1.9},
+  "PA":{"total":1676,"unresolved":57,"untimely":77,"avg_rt":15.1,"region":"Northeast","timely_pct":92.0,"unresolved_pct":3.4},
+  "RI":{"total":249,"unresolved":5,"untimely":10,"avg_rt":15.6,"region":"Northeast","timely_pct":94.0,"unresolved_pct":2.0},
+  "SC":{"total":822,"unresolved":29,"untimely":30,"avg_rt":15.3,"region":"South","timely_pct":92.8,"unresolved_pct":3.5},
+  "SD":{"total":34,"unresolved":0,"untimely":0,"avg_rt":16.3,"region":"Midwest","timely_pct":100.0,"unresolved_pct":0.0},
+  "TN":{"total":758,"unresolved":20,"untimely":26,"avg_rt":14.8,"region":"South","timely_pct":93.9,"unresolved_pct":2.6},
+  "TX":{"total":4686,"unresolved":123,"untimely":169,"avg_rt":15.1,"region":"South","timely_pct":93.8,"unresolved_pct":2.6},
+  "UT":{"total":201,"unresolved":2,"untimely":0,"avg_rt":15.3,"region":"West","timely_pct":99.0,"unresolved_pct":1.0},
+  "VA":{"total":1731,"unresolved":55,"untimely":67,"avg_rt":15.0,"region":"South","timely_pct":93.0,"unresolved_pct":3.2},
+  "VT":{"total":54,"unresolved":1,"untimely":2,"avg_rt":14.6,"region":"Northeast","timely_pct":94.4,"unresolved_pct":1.9},
+  "WA":{"total":1530,"unresolved":31,"untimely":54,"avg_rt":14.9,"region":"West","timely_pct":94.4,"unresolved_pct":2.0},
+  "WI":{"total":291,"unresolved":1,"untimely":10,"avg_rt":14.5,"region":"Midwest","timely_pct":96.2,"unresolved_pct":0.3},
+  "WV":{"total":77,"unresolved":2,"untimely":3,"avg_rt":14.4,"region":"South","timely_pct":93.5,"unresolved_pct":2.6},
+  "WY":{"total":22,"unresolved":1,"untimely":0,"avg_rt":15.5,"region":"West","timely_pct":95.5,"unresolved_pct":4.5}
+};
+const STATE_NAMES={
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',
+  DE:'Delaware',DC:'Washington D.C.',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',
+  IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',
+  MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',
+  NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',
+  NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',
+  RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',
+  VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'
+};
+const FIPS={
+  '01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT','10':'DE','11':'DC',
+  '12':'FL','13':'GA','15':'HI','16':'ID','17':'IL','18':'IN','19':'IA','20':'KS','21':'KY',
+  '22':'LA','23':'ME','24':'MD','25':'MA','26':'MI','27':'MN','28':'MS','29':'MO','30':'MT',
+  '31':'NE','32':'NV','33':'NH','34':'NJ','35':'NM','36':'NY','37':'NC','38':'ND','39':'OH',
+  '40':'OK','41':'OR','42':'PA','44':'RI','45':'SC','46':'SD','47':'TN','48':'TX','49':'UT',
+  '50':'VT','51':'VA','53':'WA','54':'WV','55':'WI','56':'WY'
+};
+
+let currentMapMetric='total';
+let mapSvg=null,mapPath=null,mapFeatures=null,mapColorScale=null;
+
+function switchMapMetric(metric){
+  currentMapMetric=metric;
+  document.querySelectorAll('.map-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn-'+{total:'total',unresolved_pct:'unres',timely_pct:'timely'}[metric]).classList.add('active');
+  if(mapSvg) updateMapColors();
+}
+
+function updateMapColors(){
+  const vals=Object.values(STATE_DATA).map(d=>d[currentMapMetric]);
+  let colorScale,legendLo,legendHi,gradColors;
+  if(currentMapMetric==='total'){
+    colorScale=d3.scaleQuantile().domain(vals).range(['#E2E8F0','#CBD5E1','#94A3B8','#64748B','#334155','#0F172A']);
+    legendLo='Few'; legendHi='Many';
+    gradColors='linear-gradient(to right,#E2E8F0,#CBD5E1,#94A3B8,#64748B,#334155,#0F172A)';
+  } else if(currentMapMetric==='unresolved_pct'){
+    colorScale=d3.scaleLinear().domain([0,1,2,3,4.5]).range(['#D1FAE5','#FEF9C3','#FEE2E2','#FECACA','#EF4444']);
+    legendLo='0% unresolved'; legendHi='4.5% unresolved';
+    gradColors='linear-gradient(to right,#D1FAE5,#FEF9C3,#FEE2E2,#EF4444)';
+  } else {
+    colorScale=d3.scaleLinear().domain([87,92,96,100]).range(['#EF4444','#FECACA','#D1FAE5','#059669']);
+    legendLo='87% timely'; legendHi='100% timely';
+    gradColors='linear-gradient(to right,#EF4444,#FECACA,#D1FAE5,#059669)';
+  }
+  document.getElementById('map-grad-bar').style.background=gradColors;
+  document.getElementById('map-leg-lo').textContent=legendLo;
+  document.getElementById('map-leg-hi').textContent=legendHi;
+  mapSvg.selectAll('path.state-path').transition().duration(300)
+    .attr('fill',d=>{
+      const abbr=FIPS[String(d.id).padStart(2,'0')];
+      const sd=STATE_DATA[abbr];
+      return sd?colorScale(sd[currentMapMetric]):'#F1F5F9';
+    });
+}
+
+/* ── DASHBOARD 2 INIT ──────────────────────────────── */
+function initDash2(){
+  /* Region bar chart */
+  new Chart(document.getElementById('regionBarChart'),{
+    type:'bar',
+    data:{
+      labels:['South','West','Northeast','Midwest'],
+      datasets:[{data:[23152,20027,12674,6663],backgroundColor:['#EF4444','#0EA5E9','#059669','#EAB308'],borderRadius:4,borderSkipped:false}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`,afterLabel:c=>` ${(c.raw/62516*100).toFixed(1)}% of total`}}},
+      scales:{x:{grid:{display:false},ticks:TICKS},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4,callback:v=>(v/1000).toFixed(0)+'k'},border:{display:false}}}
+    }
+  });
+
+  /* Division horizontal bar */
+  new Chart(document.getElementById('divisionChart'),{
+    type:'bar',
+    data:{
+      labels:['South Atlantic','Pacific','Middle Atlantic','W South Central','E North Central','Mountain','New England','W North Central','E South Central'],
+      datasets:[{data:[16336,16080,8782,5491,5003,3947,3892,1660,1325],
+        backgroundColor:[16336,16080,8782,5491,5003,3947,3892,1660,1325].map(v=>v>12000?'#0F172A':v>7000?'#334155':v>4000?'#64748B':'#94A3B8'),
+        borderRadius:3,borderSkipped:false}]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`}}},
+      scales:{x:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4,callback:v=>(v/1000).toFixed(0)+'k'},border:{display:false}},y:{grid:{display:false},ticks:{...TICKS,font:{family:"'DM Sans',sans-serif",size:10}}}}
+    }
+  });
+
+  /* Regional trend */
+  const RY_LABELS = ['2017','2018','2019','2020','2021','2022','2023'];
+  new Chart(document.getElementById('regionalTrendChart'),{
+    type:'line',
+    data:{
+      labels:RY_LABELS,
+      datasets:[
+        {label:'South',data:[2147,3135,2669,3118,3829,4768,3486],borderColor:'#EF4444',backgroundColor:'rgba(239,68,68,.05)',fill:false,tension:.3,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#EF4444',pointBorderColor:'#FFF',pointBorderWidth:2},
+        {label:'West',data:[1620,2377,2151,3122,4009,4073,2675],borderColor:'#0EA5E9',backgroundColor:'rgba(14,165,233,.05)',fill:false,tension:.3,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#0EA5E9',pointBorderColor:'#FFF',pointBorderWidth:2},
+        {label:'Northeast',data:[1046,1531,1476,1843,2338,2605,1835],borderColor:'#059669',backgroundColor:'rgba(5,150,105,.05)',fill:false,tension:.3,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#059669',pointBorderColor:'#FFF',pointBorderWidth:2},
+        {label:'Midwest',data:[581,829,779,859,973,1507,1135],borderColor:'#EAB308',backgroundColor:'rgba(234,179,8,.05)',fill:false,tension:.3,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#EAB308',pointBorderColor:'#FFF',pointBorderWidth:2}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,...TIP,callbacks:{title:i=>`Year ${i[0].label}`,label:c=>` ${c.dataset.label}: ${parseInt(c.raw).toLocaleString()}`,displayColors:true}}},
+      scales:{x:{grid:{display:false},ticks:{...TICKS,font:{family:"'DM Sans',sans-serif",size:12}}},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:5,callback:v=>(v/1000).toFixed(1)+'k'},border:{display:false}}}
+    }
+  });
+
+  /* Top 15 states */
+  const TOP15=Object.entries(STATE_DATA).sort((a,b)=>b[1].total-a[1].total).slice(0,15);
+  const RCOL={'South':'#EF4444','West':'#0EA5E9','Northeast':'#059669','Midwest':'#EAB308'};
+  new Chart(document.getElementById('topStatesChart'),{
+    type:'bar',
+    data:{
+      labels:TOP15.map(([k])=>k),
+      datasets:[{data:TOP15.map(([,v])=>v.total),backgroundColor:TOP15.map(([,v])=>RCOL[v.region]||'#94A3B8'),borderRadius:3,borderSkipped:false}]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{title:i=>`${TOP15[i[0].dataIndex][0]} — ${STATE_NAMES[TOP15[i[0].dataIndex][0]]}`,label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`,afterLabel:c=>` Region: ${TOP15[c.dataIndex][1].region}`}}},
+      scales:{x:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4,callback:v=>(v/1000).toFixed(0)+'k'},border:{display:false}},y:{grid:{display:false},ticks:{...TICKS,font:{family:"'Fira Code',monospace",size:12}}}}
+    }
+  });
+
+  /* Unresolved chart */
+  const UNRES=Object.entries(STATE_DATA).sort((a,b)=>b[1].unresolved-a[1].unresolved).slice(0,12);
+  new Chart(document.getElementById('unresolvedChart'),{
+    type:'bar',
+    data:{
+      labels:UNRES.map(([k])=>k),
+      datasets:[
+        {label:'Unresolved',data:UNRES.map(([,v])=>v.unresolved),backgroundColor:'rgba(239,68,68,.8)',borderRadius:3,borderSkipped:false},
+        {label:'Untimely',data:UNRES.map(([,v])=>v.untimely),backgroundColor:'rgba(234,179,8,.7)',borderRadius:3,borderSkipped:false}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,...TIP,callbacks:{title:i=>`${UNRES[i[0].dataIndex][0]} — ${STATE_NAMES[UNRES[i[0].dataIndex][0]]}`,label:c=>` ${c.dataset.label}: ${parseInt(c.raw).toLocaleString()}`}}},
+      scales:{x:{grid:{display:false},ticks:{...TICKS,font:{family:"'Fira Code',monospace",size:12}}},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4},border:{display:false}}}
+    }
+  });
+
+  /* State table */
+  buildStateTable();
+
+  /* D3 Choropleth map */
+  buildMap();
+}
+
+/* ── STATE TABLE ───────────────────────────────────── */
+let sortCol=3,sortDir=-1;
+function buildStateTable(){
+  const tbody=document.getElementById('stateTableBody');
+  const maxTotal=Math.max(...Object.values(STATE_DATA).map(d=>d.total));
+  const sorted=Object.entries(STATE_DATA).sort((a,b)=>sortDir*(a[1][['','State','region','total','unresolved','untimely','timely_pct','avg_rt'][sortCol]]||0)-(b[1][['','State','region','total','unresolved','untimely','timely_pct','avg_rt'][sortCol]]||0));
+  const RMAP={'South':'rc-south','West':'rc-west','Northeast':'rc-northeast','Midwest':'rc-midwest'};
+  tbody.innerHTML=sorted.map(([abbr,d],i)=>`
+    <tr>
+      <td class="num" style="color:#94A3B8">${i+1}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="state-code">${abbr}</span>
+          <span style="font-size:12px;color:#64748B">${STATE_NAMES[abbr]||''}</span>
+        </div>
+      </td>
+      <td><span class="region-chip ${RMAP[d.region]||''}">${d.region}</span></td>
+      <td class="num">${d.total.toLocaleString()}</td>
+      <td class="num">${parseInt(d.unresolved)}</td>
+      <td class="num">${parseInt(d.untimely)}</td>
+      <td class="num" style="color:${d.timely_pct>=97?'#16A34A':d.timely_pct>=95?'#0F172A':'#DC2626'}">${d.timely_pct.toFixed(1)}%</td>
+      <td class="num" style="color:${d.avg_rt>16?'#DC2626':d.avg_rt<14?'#16A34A':'#0F172A'}">${d.avg_rt.toFixed(1)}</td>
+      <td style="min-width:80px;padding:10px 14px">
+        <div class="bar-cell">
+          <div class="mini-bar" style="width:${Math.round(d.total/maxTotal*72)}px;background:${d.total>5000?'#0F172A':d.total>2000?'#334155':'#94A3B8'}"></div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  document.querySelectorAll('.state-table thead th').forEach((th,i)=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(i===sortCol)th.classList.add(sortDir>0?'sort-asc':'sort-desc');
+  });
+}
+function sortTable(col){
+  if(sortCol===col)sortDir*=-1; else{sortCol=col;sortDir=col===3?-1:1;}
+  buildStateTable();
+}
+
+/* ── D3 CHOROPLETH MAP ─────────────────────────────── */
+function buildMap(){
+  const container=document.getElementById('us-map');
+  const w=container.clientWidth||800,h=400;
+  mapSvg=d3.select('#us-map').append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%').attr('height','100%');
+  const proj=d3.geoAlbersUsa().scale(w*1.2).translate([w/2,h/2]);
+  mapPath=d3.geoPath(proj);
+  const tooltip=document.getElementById('mapTooltip');
+
+  d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us=>{
+    mapFeatures=topojson.feature(us,us.objects.states).features;
+    mapSvg.append('g').selectAll('path')
+      .data(mapFeatures).join('path')
+      .attr('class','state-path')
+      .attr('d',mapPath)
+      .attr('stroke','#FFFFFF').attr('stroke-width',0.8)
+      .attr('fill','#F1F5F9')
+      .on('mousemove',function(event,d){
+        const abbr=FIPS[String(d.id).padStart(2,'0')];
+        const sd=STATE_DATA[abbr];
+        if(!sd)return;
+        const RMAP={'South':'rc-south','West':'rc-west','Northeast':'rc-northeast','Midwest':'rc-midwest'};
+        tooltip.innerHTML=`
+          <div class="map-tooltip-title">${STATE_NAMES[abbr]||abbr} (${abbr})</div>
+          <div class="map-tooltip-row"><span class="map-tooltip-key">Complaints</span><span class="map-tooltip-val">${sd.total.toLocaleString()}</span></div>
+          <div class="map-tooltip-row"><span class="map-tooltip-key">Unresolved</span><span class="map-tooltip-val">${parseInt(sd.unresolved)} (${sd.unresolved_pct.toFixed(1)}%)</span></div>
+          <div class="map-tooltip-row"><span class="map-tooltip-key">Timely resp.</span><span class="map-tooltip-val">${sd.timely_pct.toFixed(1)}%</span></div>
+          <div class="map-tooltip-row"><span class="map-tooltip-key">Avg resp. time</span><span class="map-tooltip-val">${sd.avg_rt.toFixed(1)} days</span></div>
+          <div class="map-tooltip-row"><span class="map-tooltip-key">Region</span><span class="map-tooltip-val">${sd.region}</span></div>
+        `;
+        tooltip.style.opacity='1';
+        tooltip.style.left=(event.clientX+14)+'px';
+        tooltip.style.top=(event.clientY-10)+'px';
+        d3.select(this).attr('stroke','#059669').attr('stroke-width',2);
+      })
+      .on('mouseleave',function(){
+        tooltip.style.opacity='0';
+        d3.select(this).attr('stroke','#FFFFFF').attr('stroke-width',0.8);
+      });
+    updateMapColors();
+  }).catch(()=>{
+    mapSvg.append('text').attr('x',w/2).attr('y',h/2).attr('text-anchor','middle')
+      .attr('fill','#94A3B8').attr('font-family',"'DM Sans',sans-serif").attr('font-size','13')
+      .text('Map requires an internet connection to load topology data');
+  });
+}
+
+/* ══════════════════════════════════════════════════
+   DASHBOARD 3
+═══════════════════════════════════════════════════ */
+const PNAMES={
+  "Checking or savings account":"Checking / Savings",
+  "Credit card or prepaid card":"Credit Card",
+  "Credit reporting, credit repair services, or other personal consumer reports":"Credit Reporting",
+  "Mortgage":"Mortgage",
+  "Money transfer, virtual currency, or money service":"Money Transfer",
+  "Debt collection":"Debt Collection",
+  "Vehicle loan or lease":"Vehicle Loan",
+  "Payday loan, title loan, or personal loan":"Payday / Personal",
+  "Student loan":"Student Loan"
+};
+const PCOLORS={
+  "Checking or savings account":"#0F172A",
+  "Credit card or prepaid card":"#0EA5E9",
+  "Credit reporting, credit repair services, or other personal consumer reports":"#059669",
+  "Mortgage":"#EAB308",
+  "Money transfer, virtual currency, or money service":"#EF4444",
+  "Debt collection":"#64748B",
+  "Vehicle loan or lease":"#94A3B8",
+  "Payday loan, title loan, or personal loan":"#CBD5E1",
+  "Student loan":"#E2E8F0"
+};
+const PROD_TOTALS={
+  "Checking or savings account":24814,"Credit card or prepaid card":16197,
+  "Credit reporting, credit repair services, or other personal consumer reports":7710,
+  "Mortgage":6601,"Money transfer, virtual currency, or money service":3453,
+  "Debt collection":2736,"Vehicle loan or lease":633,
+  "Payday loan, title loan, or personal loan":333,"Student loan":39
+};
+const PROD_UNRESOLVED={"Checking or savings account":710,"Credit card or prepaid card":412,"Credit reporting, credit repair services, or other personal consumer reports":190,"Debt collection":49,"Money transfer, virtual currency, or money service":69,"Mortgage":46,"Payday loan, title loan, or personal loan":2,"Vehicle loan or lease":16};
+const PROD_UNTIMELY={"Checking or savings account":867,"Credit card or prepaid card":689,"Credit reporting, credit repair services, or other personal consumer reports":475,"Debt collection":173,"Money transfer, virtual currency, or money service":140,"Mortgage":16,"Payday loan, title loan, or personal loan":10,"Vehicle loan or lease":33};
+const PROD_YEAR_D3={
+  "Checking or savings account":{"2017":2039,"2018":3176,"2019":3080,"2020":3242,"2021":4006,"2022":5186,"2023":4085},
+  "Credit card or prepaid card":{"2017":1125,"2018":1804,"2019":1789,"2020":2552,"2021":3084,"2022":3445,"2023":2398},
+  "Credit reporting, credit repair services, or other personal consumer reports":{"2017":466,"2018":761,"2019":627,"2020":1044,"2021":1642,"2022":1858,"2023":1312},
+  "Mortgage":{"2017":1248,"2018":1294,"2019":830,"2020":1143,"2021":953,"2022":774,"2023":359},
+  "Money transfer, virtual currency, or money service":{"2017":141,"2018":306,"2019":333,"2020":432,"2021":599,"2022":1035,"2023":607}
+};
+const SUBPROD_DATA = {
+  "Checking or savings account":{labels:["Checking account", "Other banking product or service", "Savings account", "CD (Certificate of Deposit)"],data:[20768, 2568, 1239, 232]},
+  "Credit card or prepaid card":{labels:["General-purpose credit card or charge card", "Government benefit card", "General-purpose prepaid card", "Store credit card", "Payroll card", "Gift card"],data:[13404, 2429, 260, 52, 40, 12]},
+  "Credit reporting, credit repair services, or other personal consumer reports":{labels:["Credit reporting", "Other personal consumer report", "Credit repair services"],data:[7340, 299, 71]},
+  "Debt collection":{labels:["Credit card debt", "Mortgage debt", "I do not know", "Other debt", "Auto debt", "Private student loan debt", "Federal student loan debt", "Payday loan debt"],data:[1697, 341, 314, 282, 65, 17, 9, 8]},
+  "Money transfer, virtual currency, or money service":{labels:["Domestic (US) money transfer", "Mobile or digital wallet", "International money transfer", "Virtual currency", "Traveler's check or cashier's check", "Check cashing service", "Refund anticipation check", "Money order"],data:[1773, 655, 411, 208, 149, 102, 41, 39]},
+  "Mortgage":{labels:["Conventional home mortgage", "Home equity loan or line of credit (HELOC)", "Other type of mortgage", "FHA mortgage", "VA mortgage", "Reverse mortgage"],data:[3767, 1105, 949, 642, 114, 24]},
+  "Payday loan, title loan, or personal loan":{labels:["Personal line of credit", "Installment loan", "Title loan", "Payday loan"],data:[211, 84, 22, 16]},
+  "Student loan":{labels:["Private student loan", "Federal student loan servicing"],data:[23, 16]},
+  "Vehicle loan or lease":{labels:["Loan", "Lease"],data:[629, 4]}
+};
+const PROD_ISSUES_DATA={
+  "Checking or savings account":{labels:["Managing an account","Closing an account","Opening an account","Problem w/ lender"],data:[15109,2953,2725,2493]},
+  "Credit card or prepaid card":{labels:["Problem w/ purchase","Getting a credit card","Other features / terms","Fees or interest"],data:[4415,1867,1633,1422]},
+  "Credit reporting, credit repair services, or other personal consumer reports":{labels:["Incorrect info on report","Investigation problem","Improper use of report","Other"],data:[4145,1641,1517,407]},
+  "Mortgage":{labels:["Trouble during payment","Struggling to pay","Applying / refinancing","Other problems"],data:[2827,1904,1017,853]},
+  "Money transfer, virtual currency, or money service":{labels:["Fraud or scam","Other transaction","Money not available","Unexpected fees"],data:[1951,571,260,156]},
+  "Debt collection":{labels:["Attempts to collect","Written notification","Threatening action","Cont. after resolved"],data:[1351,487,380,269]},
+  "Vehicle loan or lease":{labels:["Managing the loan","Getting a loan","End of loan issues"],data:[222,180,111]},
+  "Payday loan, title loan, or personal loan":{labels:["Getting a line of credit","Problem w/ payoff","Unexpected fees"],data:[71,46,44]},
+  "Student loan":{labels:["Dealing with servicer","Struggling to repay","Incorrect info"],data:[20,9,5]}
+};
+const TOP_ISSUES_NAMES={"Managing account":"Managing an account","Fraud or scam":"Fraud or scam","Incorrect info":"Incorrect information on your report","Problem w/ purchase":"Problem with a purchase shown on your statement","Trouble w/ payment":"Trouble during payment process"};
+const ISSUE_YEAR={
+  "Managing account":[1242,2075,2064,2108,2604,2930,2086],
+  "Incorrect info":[368,609,449,715,1100,1051,639],
+  "Problem w/ purchase":[402,596,533,643,826,907,508],
+  "Fraud or scam":[37,155,185,222,349,678,361],
+  "Trouble w/ payment":[448,524,315,628,448,304,160]
+};
+// Monthly arrays (76 pts, May 2017 – Aug 2023)
+const M_CHECK = [236,257,265,252,237,238,285,262,260,247,281,321,325,256,280,263,281,264,221,179,210,115,210,268,286,285,302,323,285,271,250,273,278,247,242,291,246,260,270,237,268,294,271,343,339,308,425,369,309,315,321,310,307,326,315,354,393,368,449,415,357,351,384,529,489,475,476,493,536,495,484,466,497,421,869,334];
+const M_CC = [171,127,150,138,139,138,133,127,155,136,141,195,192,153,153,156,135,183,104,102,121,90,119,176,154,141,159,177,176,163,141,172,175,149,181,223,207,204,181,194,184,254,273,320,280,307,317,260,233,201,214,241,238,239,290,265,272,249,261,272,264,260,289,335,288,311,326,310,307,256,341,260,270,286,486,207];
+const M_CR = [54,57,53,59,62,65,50,65,85,73,78,77,63,67,52,62,65,65,47,27,21,28,37,57,59,53,84,59,57,67,59,47,69,60,61,87,92,109,91,94,76,86,112,106,121,139,118,135,105,186,192,161,111,117,144,110,134,147,179,173,154,130,134,177,174,145,153,159,162,157,196,163,166,165,187,119];
+const M_MORT = [206,170,176,152,123,164,122,123,115,102,152,135,159,90,114,100,100,117,71,47,48,34,49,88,72,79,81,76,91,81,63,70,63,78,77,85,43,71,54,124,209,170,77,94,85,93,118,80,90,68,73,71,62,86,63,61,74,65,91,81,67,52,69,71,77,47,43,36,48,39,46,36,61,34,58,41];
+const M_MT = [11,22,25,18,5,20,20,20,20,13,26,42,26,24,31,19,28,31,19,26,21,15,27,42,35,29,31,27,27,29,20,29,29,27,36,39,34,50,41,32,34,29,33,50,31,45,57,46,46,41,61,66,46,54,41,63,53,55,61,75,77,93,108,121,107,97,103,85,87,84,105,78,68,71,81,35];
+
+function movingAvg(arr,w){
+  return arr.map((v,i)=>{
+    if(i<w-1)return null;
+    const s=arr.slice(i-w+1,i+1);
+    return Math.round(s.reduce((a,b)=>a+b,0)/w);
+  });
+}
+const MR_LABELS76=(()=>{
+  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const out=[];let y=2017,m=4;
+  for(let i=0;i<76;i++){out.push((m===0||m===6)?`${y} ${mn[m]}`:'');m++;if(m===12){m=0;y++;}}
+  return out;
+})();
+
+let drillA=null,drillB=null,curProd="Checking or savings account";
+
+function initDash3(){
+  buildD3ProdVol();
+  buildD3Risk();
+  buildProdSelector();
+  updateDrillCharts(curProd);
+  buildSankeyChart();
+  buildIssueTrend();
+  buildTrendMA();
+  buildProdTable();
+}
+
+function buildD3ProdVol(){
+  const prods=Object.keys(PROD_TOTALS);
+  new Chart(document.getElementById('d3prodVolChart'),{
+    type:'bar',
+    data:{labels:prods.map(p=>PNAMES[p]),datasets:[{data:prods.map(p=>PROD_TOTALS[p]),backgroundColor:prods.map(p=>PCOLORS[p]),borderRadius:3,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`,afterLabel:c=>` ${(c.raw/62516*100).toFixed(1)}% share`}}},
+      scales:{x:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4,callback:v=>(v/1000).toFixed(0)+'k'},border:{display:false}},y:{grid:{display:false},ticks:{...TICKS,font:{family:"'DM Sans',sans-serif",size:11}}}}
+    }
+  });
+}
+
+function buildD3Risk(){
+  const prods=["Checking or savings account","Credit card or prepaid card","Credit reporting, credit repair services, or other personal consumer reports","Mortgage","Money transfer, virtual currency, or money service","Debt collection"];
+  const shorts=prods.map(p=>PNAMES[p]);
+  new Chart(document.getElementById('d3riskChart'),{
+    type:'bar',
+    data:{labels:shorts,datasets:[
+      {label:'Unresolved',data:prods.map(p=>PROD_UNRESOLVED[p]||0),backgroundColor:'rgba(239,68,68,.85)',borderRadius:3,borderSkipped:false},
+      {label:'Untimely',data:prods.map(p=>PROD_UNTIMELY[p]||0),backgroundColor:'rgba(234,179,8,.75)',borderRadius:3,borderSkipped:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,...TIP}},
+      scales:{x:{grid:{display:false},ticks:{...TICKS,maxRotation:20,font:{family:"'DM Sans',sans-serif",size:10}}},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:4},border:{display:false}}}
+    }
+  });
+}
+
+function buildProdSelector(){
+  const sel=document.getElementById('prodSelector');
+  sel.innerHTML=Object.keys(PROD_TOTALS).map(p=>{
+    const safe=p.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return `<button class="prod-chip${p===curProd?' active':''}" data-prod="${safe}" onclick="selectProd(this)">${PNAMES[p]}</button>`;
+  }).join('');
+}
+
+function selectProd(el){
+  curProd=el.dataset.prod;
+  document.querySelectorAll('.prod-chip').forEach(c=>c.classList.toggle('active',c===el));
+  updateDrillCharts(curProd);
+}
+
+function updateDrillCharts(prod){
+  const sp=SUBPROD_DATA[prod];
+  const pi=PROD_ISSUES_DATA[prod];
+  const pc=PCOLORS[prod];
+  const alphas=['FF','CC','99','66'];
+  const clrs=sp.data.map((_,i)=>pc+(alphas[i]||'55'));
+  const clrs2=pi.data.map((_,i)=>pc+(alphas[i]||'55'));
+  if(drillA){drillA.destroy();drillA=null;}
+  if(drillB){drillB.destroy();drillB=null;}
+  drillA=new Chart(document.getElementById('drillSubprodChart'),{
+    type:'doughnut',
+    data:{labels:sp.labels,datasets:[{data:sp.data,backgroundColor:clrs,borderWidth:3,borderColor:'#FFF',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{display:true,position:'bottom',labels:{font:{family:"'DM Sans',sans-serif",size:10},padding:6,boxWidth:10,color:'#64748B'}},
+        tooltip:{...TIP,callbacks:{label:c=>` ${c.label}: ${parseInt(c.raw).toLocaleString()}`,afterLabel:c=>` ${(c.raw/PROD_TOTALS[prod]*100).toFixed(1)}%`}}}
+    }
+  });
+  drillB=new Chart(document.getElementById('drillIssueChart'),{
+    type:'bar',
+    data:{labels:pi.labels,datasets:[{data:pi.data,backgroundColor:clrs2,borderRadius:3,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>` ${parseInt(c.raw).toLocaleString()} complaints`,afterLabel:c=>` ${(c.raw/PROD_TOTALS[prod]*100).toFixed(1)}%`}}},
+      scales:{x:{grid:GRID,ticks:{...TICKS,maxTicksLimit:3,callback:v=>(v/1000).toFixed(1)+'k'},border:{display:false}},y:{grid:{display:false},ticks:{...TICKS,font:{family:"'DM Sans',sans-serif",size:10}}}}
+    }
+  });
+}
+
+/* ── SANKEY ─────────────────────────────────────────── */
+function buildSankeyChart(){
+  const wrap=document.getElementById('sankeyWrap');
+  const W=wrap.clientWidth||860,H=370;
+  const ML=155,MR=170,MT=16,MB=16;
+  const svg=d3.select('#sankeyWrap').append('svg')
+    .attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height',H);
+
+  const nodes=[
+    {name:"Checking / Savings"},{name:"Credit Card"},{name:"Credit Reporting"},
+    {name:"Mortgage"},{name:"Money Transfer"},{name:"Debt Collection"},
+    {name:"Managing an account"},{name:"Incorrect info on report"},
+    {name:"Problem with purchase"},{name:"Closing an account"},
+    {name:"Trouble during payment"},{name:"Opening an account"},
+    {name:"Fraud or scam"},{name:"Struggling to pay mortgage"},
+    {name:"Getting a credit card"},{name:"Problem w/ investigation"},
+    {name:"Attempts to collect debt"}
+  ];
+  const links=[
+    {source:0,target:6,value:15109},{source:0,target:9,value:2953},{source:0,target:11,value:2725},
+    {source:1,target:8,value:4415},{source:1,target:14,value:1867},
+    {source:2,target:7,value:4145},{source:2,target:15,value:1641},
+    {source:3,target:10,value:2827},{source:3,target:13,value:1904},
+    {source:4,target:12,value:1951},{source:5,target:16,value:1351}
+  ];
+  const prodClrs6=["#0F172A","#0EA5E9","#059669","#EAB308","#EF4444","#64748B"];
+  const tip=document.getElementById('sankeyTip');
+
+  try{
+    const sk=d3.sankey().nodeWidth(15).nodePadding(11)
+      .extent([[ML,MT],[W-MR,H-MB]]);
+    const graph=sk({nodes:nodes.map(d=>({...d})),links:links.map(d=>({...d}))});
+
+    // links
+    svg.append('g').selectAll('path').data(graph.links).join('path')
+      .attr('d',d3.sankeyLinkHorizontal())
+      .attr('fill','none')
+      .attr('stroke',d=>prodClrs6[d.source.index]||'#94A3B8')
+      .attr('stroke-width',d=>Math.max(1,d.width))
+      .attr('stroke-opacity',.28)
+      .on('mousemove',(e,d)=>{
+        d3.select(e.target).attr('stroke-opacity',.6);
+        tip.innerHTML=`<strong>${d.source.name}</strong> → ${d.target.name}: ${d.value.toLocaleString()}`;
+        tip.style.opacity='1';tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-10)+'px';
+      })
+      .on('mouseleave',(e)=>{d3.select(e.target).attr('stroke-opacity',.28);tip.style.opacity='0';});
+
+    // nodes
+    const ng=svg.append('g').selectAll('g').data(graph.nodes).join('g');
+    ng.append('rect')
+      .attr('x',d=>d.x0).attr('y',d=>d.y0)
+      .attr('width',d=>d.x1-d.x0).attr('height',d=>Math.max(1,d.y1-d.y0))
+      .attr('fill',d=>d.index<6?prodClrs6[d.index]:'#94A3B8').attr('rx',3);
+
+    // product labels (left)
+    ng.filter(d=>d.index<6).append('text')
+      .attr('x',d=>d.x0-7).attr('y',d=>(d.y0+d.y1)/2)
+      .attr('text-anchor','end').attr('dominant-baseline','middle')
+      .attr('font-family',"'DM Sans',sans-serif").attr('font-size','11.5')
+      .attr('fill','#334155').attr('font-weight','500')
+      .text(d=>d.name);
+
+    // issue labels (right) + value
+    ng.filter(d=>d.index>=6).append('text')
+      .attr('x',d=>d.x1+7).attr('y',d=>(d.y0+d.y1)/2)
+      .attr('text-anchor','start').attr('dominant-baseline','middle')
+      .attr('font-family',"'DM Sans',sans-serif").attr('font-size','11')
+      .attr('fill','#475569')
+      .text(d=>{const v=graph.links.filter(l=>l.target.index===d.index).reduce((s,l)=>s+l.value,0);return `${d.name} (${(v/1000).toFixed(1)}k)`;});
+
+  }catch(e){
+    svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle')
+      .attr('fill','#94A3B8').attr('font-family',"'DM Sans',sans-serif").attr('font-size','13')
+      .text('Sankey chart requires internet to load d3-sankey');
+  }
+}
+
+/* ── ISSUE TREND ────────────────────────────────────── */
+function buildIssueTrend(){
+  const yrs=['2017','2018','2019','2020','2021','2022','2023'];
+  const issueKeys=Object.keys(ISSUE_YEAR);
+  const clrs=['#0F172A','#EF4444','#0EA5E9','#059669','#EAB308'];
+  new Chart(document.getElementById('issueTrendChart'),{
+    type:'line',
+    data:{
+      labels:yrs,
+      datasets:issueKeys.map((k,i)=>({
+        label:k,data:ISSUE_YEAR[k],borderColor:clrs[i],backgroundColor:'transparent',
+        borderWidth:2,pointRadius:4,pointBackgroundColor:clrs[i],pointBorderColor:'#FFF',
+        pointBorderWidth:2,tension:.3
+      }))
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,...TIP,callbacks:{title:i=>`Year ${i[0].label}`}}},
+      scales:{x:{grid:{display:false},ticks:{...TICKS,font:{family:"'DM Sans',sans-serif",size:12}}},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:5,callback:v=>(v/1000).toFixed(1)+'k'},border:{display:false}}}
+    }
+  });
+}
+
+/* ── TREND + MA ─────────────────────────────────────── */
+function buildTrendMA(){
+  const W=3;
+  new Chart(document.getElementById('trendMaChart'),{
+    type:'line',
+    data:{
+      labels:MR_LABELS76,
+      datasets:[
+        {label:'Checking',data:movingAvg(M_CHECK,W),borderColor:'#0F172A',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:.4,spanGaps:true},
+        {label:'Credit Card',data:movingAvg(M_CC,W),borderColor:'#0EA5E9',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:.4,spanGaps:true},
+        {label:'Credit Reporting',data:movingAvg(M_CR,W),borderColor:'#059669',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:.4,spanGaps:true},
+        {label:'Mortgage',data:movingAvg(M_MORT,W),borderColor:'#EAB308',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.4,borderDash:[4,3],spanGaps:true},
+        {label:'Money Transfer',data:movingAvg(M_MT,W),borderColor:'#EF4444',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.4,borderDash:[3,3],spanGaps:true}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{title:i=>{
+        const idx=i[0].dataIndex;
+        const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const tm=4+idx;const y=2017+Math.floor(tm/12);const m=tm%12;
+        return `${mn[m]} ${y} (3-mo avg)`;
+      }}}},
+      scales:{x:{grid:{display:false},ticks:{...TICKS,maxRotation:0,autoSkip:false}},y:{grid:GRID,ticks:{...TICKS,maxTicksLimit:5},min:0,border:{display:false}}}
+    }
+  });
+}
+
+/* ── PRODUCT TABLE ──────────────────────────────────── */
+function buildProdTable(){
+  const topIss={
+    "Checking or savings account":"Managing an account",
+    "Credit card or prepaid card":"Problem with purchase",
+    "Credit reporting, credit repair services, or other personal consumer reports":"Incorrect info on report",
+    "Mortgage":"Trouble during payment",
+    "Money transfer, virtual currency, or money service":"Fraud or scam",
+    "Debt collection":"Attempts to collect debt",
+    "Vehicle loan or lease":"Managing the loan",
+    "Payday loan, title loan, or personal loan":"Getting a line of credit",
+    "Student loan":"Dealing with servicer"
+  };
+  const tbody=document.getElementById('prodTableBody');
+  tbody.innerHTML=Object.entries(PROD_TOTALS).map(([p,total])=>{
+    const py=PROD_YEAR_D3[p]||{};
+    const g=py['2021']&&py['2022']?((py['2022']-py['2021'])/py['2021']*100):null;
+    const gTxt=g!==null?(g>0?`↑ +${g.toFixed(1)}%`:`↓ ${g.toFixed(1)}%`):'—';
+    const gCol=g===null?'#94A3B8':g>30?'#DC2626':g>0?'#CA8A04':'#16A34A';
+    const pc=PCOLORS[p];
+    const unres=PROD_UNRESOLVED[p]||0;
+    const unt=PROD_UNTIMELY[p]||0;
+    return `<tr>
+      <td><span style="display:inline-flex;align-items:center;gap:8px">
+        <span style="width:10px;height:10px;border-radius:2px;background:${pc};flex-shrink:0"></span>
+        ${PNAMES[p]}
+      </span></td>
+      <td class="n">${total.toLocaleString()}</td>
+      <td class="n">${(total/62516*100).toFixed(1)}%</td>
+      <td class="n" style="color:${unres>200?'#DC2626':unres>50?'#CA8A04':'#16A34A'}">${unres.toLocaleString()}</td>
+      <td class="n" style="color:${unt>400?'#DC2626':unt>100?'#CA8A04':'#16A34A'}">${unt.toLocaleString()}</td>
+      <td style="font-size:12px;color:#64748B;max-width:180px;overflow:hidden;text-overflow:ellipsis">${topIss[p]||'—'}</td>
+      <td class="n" style="color:${gCol};font-family:'Fira Code',monospace">${gTxt}</td>
+    </tr>`;
+  }).join('');
+}
+
+</script>
+</body>
+</html>
