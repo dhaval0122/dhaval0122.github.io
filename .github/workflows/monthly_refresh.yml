@@ -37,3 +37,23 @@ jobs:
           git add cfpb_dashboard.html
           git diff --staged --quiet || git commit -m "chore: refresh CFPB data — $(date +'%B %Y')"
           git push
+deploy:
+    needs: refresh
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main          # ensures we get the freshly committed HTML
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
