@@ -1,0 +1,39 @@
+name: Monthly CFPB Dashboard Refresh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Data/cfpb_data.xlsx'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 1 * *'
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run data refresh script
+        run: python scripts/refresh_data.py
+
+      - name: Commit updated dashboard
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cfpb_dashboard.html
+          git diff --staged --quiet || git commit -m "chore: refresh CFPB data — $(date +'%B %Y')"
+          git push
