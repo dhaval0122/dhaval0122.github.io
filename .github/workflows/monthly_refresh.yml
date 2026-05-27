@@ -46,6 +46,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+      - name: Rename dashboard to index.html
+        run: cp cfpb_dashboard.html index.html
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
